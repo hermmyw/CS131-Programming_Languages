@@ -1,0 +1,93 @@
+Prolog
+
+
+7 = 5 + 2
+no
+
+X = 5 + 2
+X=5+2
+yes
+
+A + B = 5 + 2
+
+
+
+X is 5 + 2
+X = 7
+yes
+
+7 is 5 + 2
+yes
+
+5 + 2 is 7
+no
+
+X is 5 + Y
+uncaught exception
+
+5 + 2 =:= 4 + 3
+yes
+
+X =:= 4 + 3
+uncaught exception
+
+X = 5, Y = 5, X =:= Y
+X = 5
+Y = 5
+yes.
+
+%Arithmetics
+x = y 	X =:= Y.
+x != y	X =\= Y.
+
+
+%Backtracking
+If one choice fails, it backtracks.
+
+
+
+Recursion.
+% 1
+flight(lax, alt).
+flight(atl, jfk).
+flight(jfk, lhr).
+can_travel(X, Y):- flight(X, Y).
+can_travel(X, Y):- flight(X, Z), can_travel(Z, Y).
+
+can_travel(lax, lhr).
+yes.
+can_travel(lhr, lax).
+no.
+
+
+% 2
+father(john, paul).
+father(john, henry).
+mother(paul, mary).
+mother(mary, susan).
+
+ancestor(X, Y):- father(X,Y); mother(X,Y). %parents
+ancestor(X, Y):- (father(X,Z), father(Z,Y)); (mother(X,Z), mother(Z,Y)). %grandparents
+
+
+ancestor(X, Y):- father(X,Y); mother(X,Y). %parents
+ancestor(X, Y):- (father(X,Z), ancestor(Z,Y)); (mother(X,Z),ancestor(Z,Y)).
+
+
+List.
+[val1, val2, val3, ... , valn].
+p([H|T], H, T).
+
+exists(X, []):- fail.
+exists(X, [X|_]).
+exists(X, [H|T]):-exists(X, T).
+
+append([], Y, Y).
+append([XH|XY], Y, [XH|RT]):-append(XT, Y, RT).
+
+remove(x, [], []).
+remove(x, [X|T], TN):- remove(X, T, TN).
+remove(x, [H|T], [H|TN]):- remove(X, T, TN).
+
+%Debug
+trace

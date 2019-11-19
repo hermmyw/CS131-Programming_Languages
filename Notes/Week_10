@@ -1,0 +1,270 @@
+Week 10
+===============================
+Cost models
+- mental model of how much the program will cost
+	Development
+	Runtime
+	Power/Energy
+	CPU time
+	Network latency
+	Memory, RAM, Secondary storage
+
+Cost of lisp list
+	(car x)		O(1)
+	(cdr x)		O(1)
+	(length x)	O(N)
+
+	In scheme
+		(append a b ... y z) 
+			- the first N-1 elements form a list, the last element can be any value
+			- creates copies of the first N-1 elements, no copy of z
+			- O(len(a) + len(b) + ... + len(y))
+		(eq? a b)	same object? pointer comparison
+		(= a b)		numerically equal
+		(eqv? a b)	look at contents of the referenced objects
+		(equal a b)	recursive comparison of data structures
+
+Cost of prolog unification
+	?- X = Y    -> O(|X|+|Y|)
+				-> O(min(|X|, |Y|))
+	(let ((a (+ 2 2))
+		  (b (+ 3 1))))
+
+strcmp(a, b)
+	works faster if args are aligned
+	AVX2 extension of intel slows down your clocks
+
+
+Array size
+	for (int i = 0; i < M; i++) {
+		for (int j = 0; j < N; j++) {
+			a[i][j] = b[i][j+1];   => how to accelerate this?
+		}
+	}
+	int a[100][6]
+	What is the best array size for performance?
+		Fit into cache
+		cache line size = 64 bytes
+		a[i][j] = xxx + i*sizeof(a[0])+j*sizeof(a[0][0])
+
+
+Cost model of function call
+	caller: 
+		evaluate arguments, 
+		store result in parameter, 
+	I	jump to function start
+	callee: 
+	tI	allocate frame, 
+	tI	save registers as needed, 
+		real work
+	tI	copy results to return register
+	tI	deadlock frame
+	I	jmp back
+
+	function inlining: (I)
+		+small functions
+		-code bloat
+		-recursion
+		-breaks.encapsulation
+	tail call optimization: (T)
+
+Escape analysis
+	Compiler  looking into source codes and noticing new object is used in places that can't be saved
+	So dont execute new, put the object in the stack, faster allocation, free is free
+	Common for OOL to create new objects and use and throw it away
+
+OO language
+	OO language != OO style
+	Wide variation
+		Type checking
+			static type checking:
+				C++, java, ocaml
+				reliability
+			dynamic type checking: 
+				easier to write, more bugs
+				Python
+
+		Class/Prototype
+			class based
+				subtyping/specialization
+				inheritance
+				constructor
+				namespace
+				types: new()constructor, clone() cloner
+
+			prototype based
+				clone()
+				easy to optimize, simplicity
+				dynamic type checking
+
+Parameter passing (simple+efficient+clear)
+(1)	call by value
+		c, java, scheme, ocaml
+		f(a+b), caller evaluates to 27, passes a copy to callee
+		int f(int n) = 27
+
+		Problem:
+			pass in a big array
+
+(2)	call by reference
+		c++
+		int f(int& n)
+		-> lower level int f(int* n), caller calls f(&j)
+		affect compiler optimization, aliases problem -> disable caching
+
+(3)	call by result
+	
+(4)	call by value-result = call by value + call by result
+		pass a copy of 
+		read(buf, sizeof bug)
+		buf is a result parameter
+
+(5)	call by unification
+
+(6)	call by macro calls
+		has problem of capture
+(7)	call by name
+		- thunks - call by reference: pointers, parameter is procedure
+			unit -> 'a
+			f (lambda() ...body...)
+			>> (f)
+		- The caller does not evaluate its argument, instead pass in each arg as a thunk
+			c++: int f(int& n)  -> int f(int* n)
+			my_c++: int f(int name n) -> int f(int* n), same underlying structure
+					int f(int (*n)()) { return n()++; }
+			scheme:
+				int v = 12;
+				f( (lambda() v))
+			void printarg(int arg, int n) {
+				...
+				print("Arg is " + arg); 
+				return arg;
+			}
+			int main() {
+				int sum = 0;
+				for (i = 0; i < n; i++)
+					sum += a[i];
+				printarg(sum/n, n);  // crash if n==0 in call by value
+			}
+
+
+(8)	call by need
+		call by name + cache result of thunks
+		avoid repeat calling, more efficient
+		Haskell
+			- uses exclusively call by need, like OCaml, but ocaml uses call by value
+			- eager execution
+			- lazy evaluation
+
+
+
+
+Errors and behaviors
+	Scheme:
+		(1) Implementation restrictions (run out of memory)
+		(2) Unspecified behavior
+			(eq? (x) '(x)) => #t
+			(eq? (list 'x) (list 'x)) => #f
+			(eq? 0 0) => dc
+		(3) Error is signaled
+			(open-input-file "foo") => if "foo" does not exist
+		(4) Undefined behavior
+			(car 27)
+			c++: *(int*) 0
+
+	How to address problems of errors?
+		A. Compile time checks (static checking)
+			- most reliable
+			- not always practical, less flexible
+				Python is dynamic typed, Ocaml is static.
+		B. Preconditions e.g. constraints on callers
+			sqrt(n), n>=0
+		C. Total definition
+			sqrt(n), n does not have to be >=0
+			if n < 0, return NaN
+		D. Errors are fatal
+		E. Throw an exception
+			Easy to do with continuations
+			Problem: type checking
+				In java, exceptions are typed, checked statically
+			Problem: unexpected exceptions
+				In java, method signatures tell you the exceptions it can throw
+
+
+
+Semantics: What do programs mean?
+	Syntax semantics
+	Static semantics: determined before execution
+	Dynamic semantics: determined during run time
+		- Operational semantics: see what operations the program does
+			>>>		To define a language L, write a program on interpreter for L in a language M that you already know
+					(1)	<En, C> -> v1, <E2 C> -> v2
+						<E1 + E2, C> -> v1 + v2
+						In prolog, 
+							eval(E1+E2, C, R):-
+								eval(E1, c, v1),
+								eval(E2, c, v2),
+								R is v1 + v2
+
+					(2)	<v, C> -> lookup(v, C), v is a variable
+						In prolog,
+							eval(v, C, R):-
+								atom(v),
+								member(V = R, C).
+
+					(3)	<let x=E1, in E2, C> ->
+						<E1,C> -> v1, <E2, bind(x,v1)+C > -> v2
+						In prolog,
+							eval(let(x,E1,E2),C, v2) :-
+								eval(E1, C, v1),
+								eval(E2, [X=v1|c], v2)
+						* Note: let is equivalent to lambda
+
+		- Axiomatic semantics: prove a program satisfies a boolean
+			>>>		{P} S {Q}, P and Q are boolean expressions, side effect free, S is a statement
+						If P is true before S is executed, and if S finishes, then Q is true aftewards 
+						e.g. {n < 0} n = n+1; {n <= 0}
+
+					{Q[x/E]}, x = E, {Q}
+					substitude E everywhere Q has an X.
+						Q = x<=0
+						E = x+1
+						{x+1<=0} precondition, {x=x+1}, {x<=0} postcondition
+
+					{P&B}T{Q},{PQ or B}E{Q}
+						{P} if(B) T else E{Q}
+						{P} while(B) S{Q}
+
+		- Denotational semantics: the program stands for a mathematical function
+
+	Attribute grammars (Knuth)
+		- is a BNF grammar + other stuff that specifies semantics
+		- for each rule within grammar, has equation that defines attributes for each node in the parse tree
+			example: E1 -> E2 + T
+				synthesized attr: type(E1) = if type(E2) == int && type(T) == int, then int, else float
+				inherited attr: symbolTable(E2) = symTab(E1) = symTab(T
+
+
+
+
+Project
+asyncio — Asynchronous I/O
+
+asyncio is a library to write concurrent code using the async/await syntax.
+
+asyncio is used as a foundation for multiple Python asynchronous frameworks that provide high-performance network and web-servers, database connection libraries, distributed task queues, etc.
+
+asyncio is often a perfect fit for IO-bound and high-level structured network code.
+
+asyncio provides a set of high-level APIs to:
+	run Python coroutines concurrently and have full control over their execution;
+	perform network IO and IPC;
+	control subprocesses;
+	distribute tasks via queues;
+	synchronize concurrent code;
+Additionally, there are low-level APIs for library and framework developers to:
+	create and manage event loops, which provide asynchronous APIs for networking, running subprocesses, handling OS signals, etc;
+	implement efficient protocols using transports;
+	bridge callback-based libraries and code with async/await syntax.
+
+Event loop

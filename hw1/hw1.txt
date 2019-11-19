@@ -1,0 +1,33 @@
+(1) subset
+	If a is empty, then it is always a subset of b.
+	If every element of a can be found in b, then a is a subset of b.
+	If not every element is found, then a is not a subset of b.
+
+(2) equal_sets
+	a is equal to b if and only a is a subset of b and b is a subset of a.
+
+(3) set_union
+	If a is empty, then a union b is b itself.
+	If the current element of a is already in b, then go on to next element.
+	If the current element of a is not in b, add it to the union.
+
+(4) set_intersection
+	If a is empty, then the intersection is empty.
+	If the current element of a is also in b, then add it to the intersection.
+	If the current element of a is not in b, then go on to the next element.
+
+(5) set_diff
+	set_diff finds the element present in a but not in b.
+	If a is empty, then the difference is also empty.
+	If the current element of a is not in b, then add it to the difference.
+	If the current element of a is in b, then go on to the next element.
+
+(6) computed_fixed_point
+	Computed fixed point of a function is when the function f(x) is equal to x itself.
+	If f(x) = x, then return x. If f(x) is not yet equal to x, call the function recursively with f(x).
+	If f(x) will never be equal to x, the function enters infinite loop.
+
+(7) filter_reachable
+	filter_reachable is a complicated function that extract the reachable grammar from a set of grammar rules. The first helper function filters out the terminal symbols. The resulting grammar rules only contains nonterminal symbols. Starting from the starting symbol, we need to evaluate every symbol of the right hand side. If a symbol is nonterminal and is present in the grammar rules, we continue to evaluate its right hand side. We use previous-written functions computed_fixed_point and equal_sets to figure out when to stop the function. The function stops when we cannot reach any more unvisited symbols.
+	
+

@@ -1,0 +1,29 @@
+Programming languages:
+OCaml, Java, Prolog, Scheme, Python, Kotlin
+code examples
+
+OCaml: grammar filter
+Java: Synchronization, shared memory
+Prolog: ?
+Scheme: code difference analyzer
+Python: asynchronization concurrency
+Kotlin: language binding
+
+
+OCaml
+    Type inference
+    Pattern matching
+    Currying
+Java
+    Synchronization in java
+    Language implementation optimization
+    JMM
+    Scope
+    Polymorphism
+    Generics in Java
+Prolog
+    sorting
+    reordering predicates
+    list member
+    list reversal
+    prolog arithmetic

@@ -1,0 +1,139 @@
+
+Week 9
+===============================
+Storage (Memory, RAM) management
+What gets stored in RAM/VM?
+
+Different types of 
+1) Allocated by linker (addresses hardwired into executable)
+2a) Allocated at function entry (fixed-size activation record, standard in c/c++)
+	int foo(int x) {
+		int x = x+1;
+		if (x*2 < y) {
+			int a = ...
+			char c [1000];
+		}
+		else
+			int b = ...
+	}
+
+	STACK of fixed size:
+	activation record: 
+	40	local variables
+		overhead
+		frame pointer
+	0	return address
+
+2b) Allocated block entry (varying size frame)
+	Problem of a fixed size frame:
+	- Can't deal with array with size not known at compile time
+	- Two registers: where is the frame pointer, how big is the call frame?
+
+2c) Nested functions
+	Count fixed size from frame pointer
+	Dynamic chain
+		length: number of times a function is called, depends on execution
+	Static chain:
+		length: depth of nested functions in the source code, compile time
+
+	int f(int a) {
+		int g(int b) {
+			int h(int c) {
+				return c+b+a
+			}
+		}
+	}
+
+	STACK:
+		h's frame:
+			frame pointer
+			dynamic chain of caller's frame pointers
+			return address 
+			static chain points to g's frame
+		g's frame:	
+		f's frame:
+
+
+	C-style curring:
+	func* f (int y) {
+		int g(int x) {
+			return x+y;
+		}
+		return g;
+	}
+
+
+
+
+	To implement function pointers in the presence of nested function,
+	you must have two words:
+		ip + ep
+	Save ep into the static frame slot of the call function and set the ip
+	
+
+
+
+Heap management
+
+Q1.  How does the heap manager "know" where the roots are?
+	A1a. There is just one root.
+	A1b. 1 table of roots(static)
+		 1 AR table/function, layout of a frame for that function
+		 1 struct table/struct(class), layout of that object
+
+	Mark+sweep algorithm
+		1) Clear all mark bits of all objects in the heap
+		|2) Find all roots, and mark all objects they point to
+	mark|3) Find all marked objects, mark all they point to
+		|4) Repeat step 3 until you find a fixed point
+	sweep
+		5) Reclaim all unmarked objects
+
+
+Q2. How does the heap manager keep track of the free space?
+	free list pointer
+	0)	find first free block that is big enought
+		split it to used and free area: shrink the size of free area, return the used address
+		if exactly same size, remove
+	1)	0, except: use a pointer + circular freelist
+
+
+
+	1. Quick lists
+		struct pair {
+			void* car;
+			void* cdr;
+		};
+
+		struct pair* freepairs;
+
+		struct pair* pairalloc(void) {
+			if (freepairs) {
+				struct pair* r = freepairs;
+				freepairs = r->cdr;
+				return r;					// use the free space if found
+			}
+			else {
+				return malloc(sizeof(struct pair));
+			}
+		}
+
+		void pairfree (struct pair* p) {
+			p->cdr = freepairs;				// keep the free space in your own free list
+			freepairs = p;
+		}
+		Incompatible with idea #3: own private free list will be copied by generation-based copying collectors.
+
+	2. Python's approach: link count
+		link count: count number of links pointing at the object
+		If reference counting field reaches zero, 
+		CPython automatically calls the object-specific deallocation function. 
+
+		If an object contains references to other objects, then their reference count is decremented too. 
+		Thus other objects may be deallocated in turn. 
+
+		For example, when a list is deleted the reference count for all its items is decreased.
+
+
+	3. Generation-based copying collectors
+		Newer objects are more likely to be removed

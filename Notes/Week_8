@@ -1,0 +1,167 @@
+Week 8
+===============================
+(define print)
+
+(printf "%d abc")
+	(lambda (a b . args) - )   -> one or more argument
+	(lambda args)   -> zero or more argument
+
+(define list (lambda args args))
+(define (list . args) args)   -> if last is preceeded a dot, at least n arguments
+(list 'a b c) 
+=> (a b 97)   -> assume c=97
+
+'(a b c)
+
+(lambda id (cons 'x d))
+(define (foo . id) (cons 'x id))
+
+
+(let (a (+ 8 4)) (b 3))
+	(sqrt (+ (* a a) (* b b)))
+
+==>
+(lambda (a b)     (sqrt (* (* a a) (* b b))) (+ 8 4) 3    )
+
+evaluate:  (+ 8 4) --> 3 --> (sqrt (* (* a a) (* b b)))
+
+(define (revapp l a)
+	(if (null? l)
+	a
+	(revapp (cdr l) (cons (car l) a) )))
+
+
+((lambda (b) (* 3 b)) (+ 7 b))
+
+
+
+(and E F) => (if E F #f)
+(define-syntax and
+	(syntax-rules () 
+		((and) #t)
+		((and x) x)
+		((and x y ...) (if x (and y ...) #f)
+		)))
+
+(define-syntax or
+	(syntax-rules ()
+		((or) #f)
+		((or x) x)
+		((or x y ...) (if x x (or y ...)) 
+		)))
+
+(define-syntax let
+	(syntax-rules ()
+			((let ((name val) ... ) body1 body2 ...)
+			((lambda (name ...) body1 body2 ...) val ...))
+			((let tag ((name val)...) body1 body2)
+			((letrec ((tag (lambda (name ...) body1 body2 ...)))
+			tag) 
+			val ...))))
+
+Tail recursion
+	(define f (lambda (x) (a x) (b x) (c x)))
+
+	(lambda ... (expr))  -> expr is a tail call
+
+	(if expr expr expr) -> the last two expr are also tail call
+
+	(lambda (x) (a x) (if x (b x) (c x))) -> (b x) (c x) 
+
+	(lambda (x) (a x) (if (a x) (b x) (c x))) -> stack will grow, need to check return value of (a x)
+
+	(and E1 E2 ... En)
+	(or E1 E2 ...  En)
+	En is a tail call
+
+
+	(let ((a ...)
+		  (b ...))
+		  (expr))
+
+	(define (revapp l a)
+		(if (null? l)
+			a          -> tail call
+			(revapp (cdr l) (cons (car l) a))))    -> tail call
+
+		callq revapp
+		addq...
+		ret
+
+		jmp revapp, reuse return address
+
+
+	(define revapp
+		(lambda (l a)
+			(if (null? l).........)))  -> tail call
+
+
+=================================================================
+Continuations
+	data structures representing the planned future execution of your program
+	at machine level:
+		ip %rip -> code
+		env_p %rbp or %rsp-k -> frame of current procedure
+	create a continuation in scheme: create ip+ep
+
+	(call-with-current-continuation p)
+		p is a procedure that takes one argument
+		(1) create a continuation k
+		(2) (p k)
+		(3) return whatever step (2) returns
+	To use a continuation k
+	do this (k 42)
+		(1) sets interpreter's ip, ep from k, 
+		(2) arranges for 42 to be returned from call-with-current-continuations
+
+
+
+	(define (prod ls)
+		(call/cc (lambda (break)
+					(let pr ((ls ls))
+						(if (null? ls) 1
+							(if (zero? (car ls)) (break 0)
+								(X (car ls) (pr (cdr ls)))))))))
+
+	(define lwp-list '())
+	(define (lsp thunk)
+		(set! lwp-list (append lwp-list (list thunk))))
+
+	(define (start)
+		(let ((first (car lwp-list)))
+		(set! lwp-list (cdr lwp-list))
+		(first)))
+	thunk: parameterless procedure executed for side effects
+
+	(define (yield)
+		(call/cc
+			(lambda (k)
+				(lwp (lambda () (k 42)))  -> (k 42) set ip to k'ip, ev to k'ep, return value is 42
+					(start))))
+
+	(lwp (lambda () (let f() (display "h") (yield) (f))))
+	(lwp (lambda () (let f() (display "i") (yield) (f))))
+	(lwp (lambda () (let f() (newline) (yield) (f))))
+	(start)
+
+	==>
+	hi
+	hi
+	hi
+	...
+	i
+
+Continuation passing style
+	All functions take an extra continuation argument
+	(define (prod ls k)
+		(let (break k))
+			(let pr ((ls ls) (k k))
+				(if (null? ls) (k 1)
+				 	(if (zero? (car ls)) (break 0)
+				 		(pr (cdr ls)
+				 			(lambda (r) (k (* r (car ls))))
+				 		)
+				 	)
+				)
+			)
+	)

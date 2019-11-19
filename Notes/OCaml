@@ -1,0 +1,228 @@
+OCaml
+Week 1 discussion
+# print_string "Hello World\n";;
+
+Hello World
+- : unit = ()
+
+#   let my_value = 5;;
+val my_value : int = 5
+
+# let numbers = [1;2;3;4;5];;
+val numbers : int list = [1; 2; 3; 4; 5]
+lists must have same types
+
+# 0::[1;2;3];;
+- : int list = [0; 1; 2; 3]
+
+# 0::1::2::3::[4];;
+- : int list = [0; 1; 2; 3; 4]
+
+# let average a b = (a+b)/2;;
+val average : int -> int -> int = <fun>
+
+# average 5 7;;
+- : int = 6
+
+# let average_f a b = (a +. b)/.2.0;;
+val average_f : float -> float -> float = <fun>
+
+# average_f 9.0 4.0
+  ;;
+- : float = 6.5
+
+
+
+# average_f 9 4;;
+Error: This expression has type int but an expression was expected of type
+         float
+
+
+Round down
+# average 9 4;;
+- : int = 6
+
+# let average a b =                 
+  	let sum = a +. b in  
+  	sum /. 2.0 ;;
+val average : float -> float -> float = <fun>
+# (fun x -> x*x) 5;;
+- : int = 25
+# (fun x -> x+5) 10;;
+- : int = 15
+
+(* lists must have same types *)
+head::tail: head is the first element, tail is all the remaining elements.
+:: right associative, the previous statement becomes 0::(1::(2::[3]))
+
+# List.map (fun x -> x*x) [1;2;3;4;5];;
+- : int list = [1; 4; 9; 16; 25]
+Transform all elements of the list
+
+# List.filter(fun x -> x<3) [1;2;3;4;5];;
+- : int list = [1; 2]
+Elements that satisfy 
+
+# List.for_all (fun x -> x<3) [1;2;3;4;5];; 
+- : bool = false
+
+# List.exists (fun x -> x=6) [1;2;3;4;5];;
+- : bool = false
+
+# List.map (fun x -> x+1) [1;2;3;4;5];;
+
+# List.filter (fun x -> x mod 2 = 0) [1;2;3;4;5];;
+even elements in a list
+
+# List.for_all  (fun x -> x mod 2 = 0) [1;2;3;4;5];;
+if all elements are even
+
+# let is_zero x = if x = 0 then true else false;;
+
+
+# let is_zero x = match x with
+| 0 -> true
+| _ -> false        -> otherwise
+switch statement
+
+# let rec factorial a = match a with
+| x when x < 2 -> 1
+| x -> x * factorial (x-1);;
+
+
+
+# let tuple_matcher x = match x with
+  | (1,a) -> a 
+  | _ -> 0;;
+val tuple_matcher : int * int -> int = <fun>
+# tuple_matcher(1,5);; 
+- : int = 5
+# tuple_matcher(0,5);;
+- : int = 0
+
+
+# let print_name (p:person) = match p with
+  | (p_age,p_name) -> print_string p_name;;
+
+# let my_person = (111, "bob": person);;
+val my_person : person = (111, "bob")
+# print_name my_person;;
+bob- : unit = ()
+
+
+# type ccle = 
+  | Student of string
+  | Professor of string 
+  | TA of string;;
+
+
+
+
+
+(*Week 2*)
+(*Pattern matching:  *)
+# let first x = match x with
+  | (left, _) -> left;;
+val first : 'a * 'b -> 'a = <fun>
+# first (1,2);;
+- : int = 1
+# let first = function
+  | (left, _) -> left;;
+val first : 'a * 'b -> 'a = <fun>
+# first (1,2);;
+- : int = 1
+# let first (left,_) = left;;
+val first : 'a * 'b -> 'a = <fun>
+# first (1,2);;
+- : int = 1
+
+
+Factorial:
+# let rec f = function
+  | 0 -> 1
+  | x -> x*(f(x-1));;
+val f : int -> int = <fun>
+
+
+
+# let f = function
+   | a,b when a > 5 -> b
+   | _ -> "No match";;
+val f : int * string -> string = <fun>
+# f (5, "hello");;
+- : string = "No match"
+# f (6, "hello");;
+- : string = "hello"
+# f (fun x -> x+1);;
+- : int = 3
+# f (fun x -> x*2);;
+- : int = 4
+
+
+
+
+
+Type recap:
+# type ('nonterminal, 'terminal) symbol = 
+  | N of 'nonterminal
+  | T of 'terminal;;
+type ('nonterminal, 'terminal) symbol = N of 'nonterminal | T of 'terminal
+
+# type awksub_nonterminals = Expr | Lvalue | Incrop | Binop | Num;;
+type awksub_nonterminals = Expr | Lvalue | Incrop | Binop | Num
+
+# [T "("; N Expr; T")"];;
+- : (awksub_nonterminals, string) symbol list = [T "("; N Expr; T ")"]
+
+
+
+
+No return value: (option)
+# let divide a b = match a b with
+  | x,y when y = 0.0 -> None
+  | x,y -> Some(x /. y);;
+
+
+List module:
+# List.mapi(fun i x -> (i,x)) ["A";"B"];;
+- : (int * string) list = [(0, "A"); (1, "B")]
+
+get list elements in indices 2-4:
+# let a = List.mapi(fun i x -> (i,x)) [10;5;7;2;6;9;4];;
+val a : (int * int) list =
+  [(0, 10); (1, 5); (2, 7); (3, 2); (4, 6); (5, 9); (6, 4)]
+
+# let b = List.filter (fun x -> (fst x) >= 2 && (fst x) <= 4) a;;
+val b : (int * int) list = [(2, 7); (3, 2); (4, 6)]
+
+# let c = snd (List.split b);;
+val c : int list = [7; 2; 6]
+
+# snd (List.split hobbits);;                    
+- : int list = [129; 51; 37; 29]
+
+# List.fold_left (fun acc x -> acc+x) 0 (snd (List.split hobbits));;
+- : int = 246
+
+
+
+
+
+
+
+Homework 2:
+"Mark drinks"
+Phrase        Phrase -> noun verb
+Noun Verb     Noun -> mary
+mary Verb     Backtrack
+Noun Verb     Noun -> mark
+mark Verb     Verb -> eats
+mark eats     Backtrack
+mark Verb     Verb -> drinks
+mark drinks
+
+
+OCaml
+	Type inference
+	Pattern matching
+	Currying

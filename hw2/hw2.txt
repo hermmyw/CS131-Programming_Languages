@@ -1,0 +1,51 @@
+Why I decided to not write make_parser in terms of make_matcher?
+In order for the make_parser to work correctly, I need to keep track of all 
+the current rules that I have parsed successfully and also to be able to 
+backtrack and delete trees if necessary. Therefore, I can't use the same 
+make_matcher to achieve this goal for make_parser.
+The designs for make_matcher and make_parser_matcher are actually very 
+similar, except that for the parser matcher, when I have a match for the 
+current rule in the recursive call, I append this rule to the rest of the tree instead of simply going on recursion. This makes sure I can keep track of the rules that I have parsed. 
+The rest of the matcher is completely the same as the original make_matcher.
+
+Illustrate weaknesses by test cases that fail with my implementation:
+Suppose I have a grammar:
+	S -> NP + VP
+	NP -> N
+	NP -> AP + N
+	VP -> V
+	VP -> V + NP
+	VP -> V + NP + NP
+	VP -> V + NP + PP
+	VP -> V + NP + NP + PP
+	AP -> Adj
+	PP -> Prep + NP
+	N -> "apple"
+	N -> "Mark"
+	N -> "table"
+	V -> "eats"
+	Adj -> "red"
+	Prep -> "on"
+
+This is a simplified version of English phrase structure.
+
+I realize my make_matcher cannot match to the longest grammar rule. In other 
+words, if a start symbol can be matched in many different ways, my matcher 
+cannot choose the "best" way that would result in the all matched strings. 
+
+Specifically, if I have a set of English grammar rules and given an 
+expression that should be all matched "Mark eats red apple on table" (I 
+ignore the articles to avoid complicated grammar rules), all the strings in 
+the sentence should be matched. However, the first rule for verb phrase is 
+the just verb itself in the grammar; therefore, the matcher found a matching 
+Verb -> eats, and it stops looking for better matches. In the end, "red 
+apple on table" can't be matched because a sentence can only contain a noun 
+phrase and a verb phrase according to my grammar rules. 
+
+More generally, as we see there are five ways that a verb phrase can be 
+matched, but my matcher will always match to the first one and never the 
+rest of the rules. This is because the other four rules all satisfy the 
+first rule, and the matcher continues once it finds the first match.
+The spec did clarify that the match we found "is not necessarily the 
+shortest or the longest acceptable match"; hence, this weakness in my code 
+can be ignored in this case.

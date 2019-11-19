@@ -1,0 +1,11 @@
+class GetNSet implements State {
+	GetNSet(byte[] b) {
+		
+	}
+	GetNSet(byte[] b, byte, n) {
+		
+	}
+    public int size();
+    public byte[] current();
+    public boolean swap(int i, int j);
+}

@@ -1,0 +1,269 @@
+Old final
+===================================
+1.
+Types of heap fragmentation
+	External: 
+		free space at the beginning and the end of a block, but the middle space is occupied
+		can't fit in a large object
+	Internal: 
+		allocate more memory than we need
+		have free space that we can't use anymore, but is allocated
+
+Traditional lisp implementation:
+	cons is the only heap storage allocation primitive
+	cons elements are the same size
+	we can always use the freed space in the external fragmentation
+	internal fragmentationis not an issue because the private heap allocation software of lisp can define itsallocation granularity to be the size of a cons cell.
+
+
+
+2a. 
+s: int -> int
+
+2b.
+let s x = x+1
+let rec i min max = 
+	if max < min then [] else min::i ( s min ) max
+	   int   int     list
+
+i: int -> int -> int list
+	
+
+2c. 
+let rec f p = function
+	| [] -> []
+	| a::r -> 
+		let fpr = f p r in
+			if p a then a::fpr
+			else fpr
+
+p a ===> p type is 'a -> bool
+r ===> list because []->[], type 'a because 
+return list ===> a::fpr, a is type 'a
+
+f: p 		  -> r 		 -> list
+f: ('a->bool) -> 'a list -> 'a list
+
+filter function: if an element satisfies p, add to the return list
+
+
+
+2d. 
+let x n = f(fun m -> not (m nod n = 0))
+
+lambda function:
+m -> bool
+int -> bool
+
+f function:
+(int -> bool) -> int list -> int list
+
+x: n -> f
+x: int -> int list -> int list
+
+keep elements that are not multiples of n
+
+
+2e.
+filter prime number
+
+
+
+3.
+Python multithreading vs. Java multithreading
+	Python: 
+		GIL, not real multithreading, single thread executing python code
+		multiple processes can run at the same time, but not threads
+	Java: 
+		actually use multiple threads on multiple cores
+		parallelism
+
+Asyncio handle concurrency?
+	Blocking, context switching 
+	vs. multiple thread?
+	single-thread event loop: 
+		while wait for I/O -> choose other tasks
+		loop through requests and intensive operations
+		go to intensive operations while waiting for requests
+
+Cooperative
+	preemptive multitasking: CPU decides when to give up control
+	when it waits for something, yield the control
+
+
+
+
+4.
+OOL are fundamentally different?
+	more efficiency in memory usage, type checking, safety, garbage collection
+	OOLs are more popular, faster evolution
+	multithreaded programming
+	depend more on external libraries
+
+
+
+
+
+5a. 
+Static scope semantics:
+	int x = 0
+	func f(): print(x)
+	func g(): int x = 5; f();
+	
+	call g()
+
+	if static scope, print 0
+	if dynmaic scope, print 5
+
+"Easy" implementation:
+	easier to do on the heap
+	on stack, we need to trace back on the stack to search for the value of x
+
+
+5b.
+
+
+
+
+
+
+
+6.
+works call-by-value, hangs with call-by-name or call-by-need?
+# global variables changing state inside functions
+# inf loop under some condition
+
+	func f(x): print(x); print(x)
+	func g(): return 1
+	f(g())
+
+	by value: print 1 twice
+	by name: call g twice
+	by need: call g once because cached result
+
+	If g allocates too much memory, evaluating g() too many times in callbyname will let us run out of memory.
+	Multithreads race condtions in call by need.
+
+
+
+	count = 0
+
+	g():
+	count++
+	if count > 1 ...inf loop...
+	return 1
+
+	f():
+	print a twice
+
+	f(g());
+
+	by value: works because count is zero
+	by name: enters inf loop
+
+
+
+7a.
+shift_left(L,R) succeeds is R is L shifted by 1
+shift_left([a,b,c], [b,c])
+
+shift_left([H|T], T)
+
+
+7b.
+shift_right(R,L)
+shift_right([a,b,c], [a,b])
+do [a,b,c] reverse [c,b,a] -> shift_left -> [b,a] -> reverse
+
+shift_right(X,Y):-
+	reverse(X, [H|T])
+	reverse(T, Y)
+
+7c.
+shift_left_circular(L,R)
+shift_left_circular([a,b,c], [b,c,a])
+
+shift_left_circular([H|T],y):-
+	append(T, [H], y)				-> append T to H and store the result in y
+
+7d.
+shift_right_circular(L,R)
+shift_right_circular(X,Y):- shift_left_circular(Y,X)
+
+
+
+
+
+
+
+
+
+8. 
+(car   (begin (set! car cdr) (list car cdr))    )
+	evaluate the expression in any order
+	result is ambiguous
+
+
+10.
+type checking, private/public
+multithreading
+no interfaces
+language binding for some libraries do not exist
+different scoping
+
+
+
+11.
+array index starts from 0:
+	easier computation of address
+
+array on stack:
+	easy garbage collection
+	pop off stack
+
+same size array element:
+	easier to compute address
+	reduce internal fragmentation
+
+subscript violations are undefined:
+	no bound checking overhead
+	dont need to store length
+
+one dimension array:
+
+Number of elements is fixed at compile time
+	fix size is faster when stored on stack
+	reduce external fragmentation
+
+
+accessed directly of array elements:
+	avoid aliasing, better optimization, constant propagation, code reordering
+	waste space
+
+
+
+
+12.
+type checking:
+	return type of f is not what we specified
+	not enough stack frames
+
+In python to avoid type error
+
+
+
+
+OTHERS
+1. garbage collection algorithms:
+	Java: mark and sweep
+	Python: link counting
+
+2. conservative/precise GC?
+	conservative:
+		estimate pointer count
+	precise:
+		we know the exact reference count
+
+3. Generational GC?
+	Newer objects are more likely to be freed
+

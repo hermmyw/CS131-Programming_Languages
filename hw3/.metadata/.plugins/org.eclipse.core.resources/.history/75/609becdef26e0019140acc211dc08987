@@ -1,0 +1,3 @@
+class GetNSet implements State {
+	
+}

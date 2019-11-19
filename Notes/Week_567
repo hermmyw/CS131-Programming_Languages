@@ -1,0 +1,154 @@
+Week 5
+#### Prolog
+:-op(700, xfx, [==, \=, =<]).  % (non-associative)
+:-op(500, yfx, [+, -]).        % (left-associative)
+:-op(400, yfx, [*, /]).
+:-op(200, xfy, [**]).          % (right-associative)
+:-op(200, fy, [+, -]).
+
+(* matcher *)
+let rec mm = function
+  | Or (a, b) -> 
+    let ma = mm a
+    and mb = mm b 
+    in fun acc frag -> 
+        match ma acc frag with
+          | Some x -> Some x
+          | none -> mb acc frag
+  | Concat (a, b) ->
+    let ma = mm a 
+    and mb = mm b
+    in fun acc ->
+        ma (mb acc)
+
+### abstract class and final class:
+abstract class X {
+  int i;
+  public void incr() {i++;} // regular
+  public void decr();       // interface 
+}
+
+public class SX extends X {
+  puglic void decr() {i--;}
+}
+
+final class F;
+// cannot subclass it
+// prevent child class from mistakes
+// compiler can inline calls to final methods
+
+// Object class
+public class Object {
+  public Object();
+  public boolean equals(Object obj); // default == 
+  public int hashCode(); // default (int)this
+  // o1.equals(o2);
+  // o1.hashCode() == o2.hashCode();
+  public String toString();
+  // System.out.println(foo) for debugging
+  public final Class getClass();
+  // Class c = o.getClass();
+  protected void finalize() throws Throwable; // objects' last words
+  protected Object clone() throws CloneNotSupportedException;
+}
+
+
+
+
+
+Week 6
+member(X,[X|_]).
+member(X,[_|L]) :- member(X,L).
+
+?-member(3,[5,3,1])
+?-member(Q,[5,3,1])
+?-member(3,[A,B,C])
+
+?-member(9,L)
+% L=[9|_19];
+% L=[_29,9|_39]
+
+revapp([],A,A).
+revapp([X|L],A,R):-revapp(L,[X|A],R).
+reverse(L,R):-revapp(L,[],R).
+
+?-is(x,'+'(2,3))
+% x=5
+
+
+
+Week 7 Lec 1
+#### Prolog Syntax:
+* atom
+* number
+* variable
+* string
+* structure
+
+
+#### Program:
+* facts:      member(X,[X|_]).
+* rules:      member(X,[_|L]) :- member(X,L). 
+* quries:     ?- member(a, R).
+
+#### Unification:
+* Variable binding.
+* Unification is two-way
+    * Ocaml-like pattern matching
+    * "reverse" pattern matching: binds data variables to values
+
+'='(X,X).
+X = X.
+ 
+p(X,X).
+p(f(X,g(Y),Z), f(h(i(K)),L,j(M))).
+
+X1 = f(X2,g(Y),Z), X2 = h(i(K)), L = g(Y), Z = j(M).
+
+
+
+Week 7 Lec 2
+### Theory
+#### propositional logic
+
+proposition:  p   "It rained today"
+              q   "405 was busy today"
+              
+connectives:  &   and
+              |   or
+              !   not
+              ->, :-  implication
+
+        (p<=q)
+p   q   p->q  q<-p  p<->q
+0   0   1     1     1
+0   1   1     0     0
+1   0   0     1     0
+1   1   1     1     1
+
+#### Tautology
+((p->q)^(q->p)) -> (p<->q)
+((p->q)^(q->r)) -> (p->r)
+
+#### First order logic
+Predicate calculus
+1. logic variables as arguments to predicates
+2. quantifiers (for all) (there exists)
+for all X man(X)->mortal(X)
+
+formula -> theorem prover -> yes (tautology)
+                          -> no (counterexample)
+                          -> idk (infinite loop)
+                          
+#### clausal form
+
+B1 | B2 | ... | Bn < - A1 & A2 & ... & Am
+consequents < - antecedents
+
+dog(X)|cat(X)|pig(X) < - petlicensed(X) & inLA(X)
+
+##### Horn clauses: n <= 1
+Prolog subset of logic:
+* n=1, m=0. fact
+* n=1, m>0. rule
+* n=0.      query
